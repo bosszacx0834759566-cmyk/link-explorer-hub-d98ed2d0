@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ASSET_BY_ID, KIND_META, TECH_META, type LinkState, type Segment } from '@/lib/ololink';
 import type { OloLinkState } from '@/hooks/use-ololink';
 
-function Line({ label, value, tone }: { label: string; value: string; tone?: string }) {
+function Line({ label, value, tone }: { label: string; value: string; tone?: string | undefined }) {
   return (
     <div className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-0">
       <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">{label}</span>
@@ -192,7 +192,7 @@ export function ObjectCard({ state }: { state: OloLinkState }) {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 20, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-          className="pointer-events-auto absolute right-4 top-20 z-30 max-h-[calc(100vh-11rem)] w-[272px] overflow-y-auto rounded-xl border border-white/[0.08] bg-[#070b14]/88 p-4 shadow-[0_16px_50px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+          className="pointer-events-auto absolute right-4 top-[68px] z-30 max-h-[calc(100vh-9.5rem)] w-[288px] overflow-y-auto rounded-xl border border-white/[0.08] bg-[#070b14]/90 p-4 shadow-[0_16px_50px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl"
         >
           <div className="mb-3 flex items-start justify-between gap-2">
             <div>
@@ -216,6 +216,23 @@ export function ObjectCard({ state }: { state: OloLinkState }) {
           ) : link ? (
             <LinkBody link={link} state={state} />
           ) : null}
+
+          <div className="mt-4 flex gap-1.5 border-t border-white/[0.06] pt-3">
+            <button
+              type="button"
+              onClick={() => state.setPanel(sel.type === 'asset' ? 'assets' : 'network')}
+              className="flex-1 rounded-md border border-white/[0.09] px-2 py-1.5 text-[9px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-sky-400/30 hover:text-foreground"
+            >
+              Open workspace
+            </button>
+            <button
+              type="button"
+              onClick={() => state.setPanel('intel')}
+              className="flex-1 rounded-md border border-sky-400/25 bg-sky-500/[0.08] px-2 py-1.5 text-[9px] uppercase tracking-[0.18em] text-sky-200 transition-colors hover:bg-sky-500/[0.16]"
+            >
+              AI routing
+            </button>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

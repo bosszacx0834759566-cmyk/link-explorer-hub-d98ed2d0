@@ -6,6 +6,7 @@ import {
   linkStates,
   routeSegments,
   type Segment,
+  type Tech,
   type LinkState,
   type ScenarioId,
   type ScenarioProfile,
@@ -15,10 +16,7 @@ export type RailId =
   | 'overview'
   | 'assets'
   | 'network'
-  | 'links'
-  | 'weather'
-  | 'ai'
-  | 'planning'
+  | 'intel'
   | 'analytics'
   | 'alerts'
   | 'settings';
@@ -71,6 +69,8 @@ export interface OloLinkState {
   aiProcessing: boolean;
   running: boolean;
   layers: { weather: boolean; orbits: boolean; labels: boolean; routes: boolean };
+  techFilter: Record<Tech, boolean>;
+  toggleTech: (t: Tech) => void;
   setScenario: (id: ScenarioId) => void;
   setPanel: (id: RailId | null) => void;
   togglePanel: (id: RailId) => void;
@@ -90,6 +90,13 @@ export function useOloLink(): OloLinkState {
   const [previousRoute, setPreviousRoute] = useState<Segment[] | null>(null);
   const [rerouteSeq, setRerouteSeq] = useState(0);
   const [layers, setLayers] = useState({ weather: true, orbits: true, labels: true, routes: true });
+  const [techFilter, setTechFilter] = useState<Record<Tech, boolean>>({
+    OPTICAL: true,
+    FSO: true,
+    MICROWAVE: true,
+    RF: true,
+    FIBER: true,
+  });
   const [telemetry, setTelemetry] = useState<Telemetry>(SCENARIOS.clear.telemetry);
   const [events, setEvents] = useState<EventEntry[]>([
     { id: 'e0', time: 'T+00:00', level: 'INFO', text: 'Orchestration session initialised' },
@@ -193,6 +200,8 @@ export function useOloLink(): OloLinkState {
     aiProcessing,
     running,
     layers,
+    techFilter,
+    toggleTech: (t) => setTechFilter((f) => ({ ...f, [t]: !f[t] })),
     setScenario,
     setPanel,
     togglePanel: (id) => setPanel((p) => (p === id ? null : id)),

@@ -37,7 +37,7 @@ function Row({
 }: {
   label: string;
   value: string;
-  tone?: string;
+  tone?: string | undefined;
 }) {
   return (
     <div className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-0">
@@ -55,9 +55,9 @@ function ListButton({
   onClick,
 }: {
   label: string;
-  meta?: string;
-  active?: boolean;
-  dot?: string;
+  meta?: string | undefined;
+  active?: boolean | undefined;
+  dot?: string | undefined;
   onClick: () => void;
 }) {
   return (
@@ -83,6 +83,36 @@ function Bar({ value, tone }: { value: number; tone: string }) {
   return (
     <div className="h-[3px] w-full overflow-hidden rounded-full bg-white/[0.06]">
       <div className={cn('h-full rounded-full', tone)} style={{ width: `${Math.min(100, value)}%` }} />
+    </div>
+  );
+}
+
+function Tabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: string; label: string }[];
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="mb-5 flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] p-0.5">
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          onClick={() => onChange(t.id)}
+          className={cn(
+            'flex-1 rounded-[6px] px-2 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors',
+            active === t.id
+              ? 'bg-sky-500/[0.14] text-sky-300'
+              : 'text-muted-foreground/70 hover:bg-white/[0.04] hover:text-foreground'
+          )}
+        >
+          {t.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -196,7 +226,7 @@ function OverviewPanel({ state }: { state: OloLinkState }) {
   );
 }
 
-function NetworkPanel({ state }: { state: OloLinkState }) {
+function TopologyPanel({ state }: { state: OloLinkState }) {
   const active = state.links.filter((l) => l.status === 'ACTIVE');
   const blocked = state.links.filter((l) => l.status === 'BLOCKED');
   return (
@@ -239,7 +269,7 @@ function NetworkPanel({ state }: { state: OloLinkState }) {
 function LinksPanel({ state }: { state: OloLinkState }) {
   return (
     <div className="space-y-1">
-      {state.links.map((l) => {
+      {state.links.filter((l) => state.techFilter[l.segment.tech]).map((l) => {
         const meta = TECH_META[l.segment.tech];
         return (
           <button
@@ -284,7 +314,7 @@ function LinksPanel({ state }: { state: OloLinkState }) {
   );
 }
 
-function WeatherPanel({ state }: { state: OloLinkState }) {
+function WeatherBody({ state }: { state: OloLinkState }) {
   const { profile } = state;
   return (
     <div>
@@ -348,7 +378,7 @@ function WeatherPanel({ state }: { state: OloLinkState }) {
   );
 }
 
-function AiPanel({ state }: { state: OloLinkState }) {
+function AiBody({ state }: { state: OloLinkState }) {
   const { profile, aiProcessing } = state;
   return (
     <div>
@@ -421,7 +451,7 @@ function AiPanel({ state }: { state: OloLinkState }) {
   );
 }
 
-function PlanningPanel({ state }: { state: OloLinkState }) {
+function TimelineBody({ state }: { state: OloLinkState }) {
   const steps = [
     'Session initialised',
     'Weather ingestion',
@@ -473,7 +503,7 @@ function PlanningPanel({ state }: { state: OloLinkState }) {
   );
 }
 
-function AnalyticsPanel({ state }: { state: OloLinkState }) {
+function PerformanceBody({ state }: { state: OloLinkState }) {
   return (
     <div>
       <Section title="Rolling performance">
@@ -628,16 +658,66 @@ function SettingsPanel({ state }: { state: OloLinkState }) {
   );
 }
 
+
+function NetworkPanel({ state }: { state: OloLinkState }) {
+  const [tab, setTab] = useState('topology');
+  return (
+    <div>
+      <Tabs
+        tabs={[
+          { id: 'topology', label: 'Topology' },
+          { id: 'links', label: 'Links' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+      {tab === 'topology' ? <TopologyPanel state={state} /> : <LinksPanel state={state} />}
+    </div>
+  );
+}
+
+function IntelPanel({ state }: { state: OloLinkState }) {
+  const [tab, setTab] = useState('ai');
+  return (
+    <div>
+      <Tabs
+        tabs={[
+          { id: 'ai', label: 'AI Decisions' },
+          { id: 'weather', label: 'Weather' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+      {tab === 'ai' ? <AiBody state={state} /> : <WeatherBody state={state} />}
+    </div>
+  );
+}
+
+function AnalyticsPanel({ state }: { state: OloLinkState }) {
+  const [tab, setTab] = useState('performance');
+  return (
+    <div>
+      <Tabs
+        tabs={[
+          { id: 'performance', label: 'Performance' },
+          { id: 'timeline', label: 'Timeline' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+      {tab === 'performance' ? <PerformanceBody state={state} /> : <TimelineBody state={state} />}
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------- shell */
+
 
 const PANELS: Record<RailId, (p: { state: OloLinkState }) => React.ReactElement> = {
   overview: OverviewPanel,
   assets: AssetsPanel,
   network: NetworkPanel,
-  links: LinksPanel,
-  weather: WeatherPanel,
-  ai: AiPanel,
-  planning: PlanningPanel,
+  intel: IntelPanel,
   analytics: AnalyticsPanel,
   alerts: AlertsPanel,
   settings: SettingsPanel,
@@ -657,12 +737,15 @@ export function ContextPanel({ state }: { state: OloLinkState }) {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: -24, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-          className="pointer-events-auto absolute bottom-0 left-14 top-14 z-20 flex w-[320px] flex-col border-r border-white/[0.06] bg-[#070b14]/85 backdrop-blur-xl"
+          className="pointer-events-auto absolute bottom-0 left-[60px] top-12 z-20 flex w-[336px] flex-col border-r border-white/[0.06] bg-[#070b14]/88 shadow-[24px_0_60px_-40px_rgba(0,0,0,0.95)] backdrop-blur-xl"
         >
-          <header className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-            <h2 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-foreground">
-              {item.label}
-            </h2>
+          <header className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
+            <div>
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.28em] text-foreground">
+                {item.label}
+              </h2>
+              <p className="mt-1 text-[10px] tracking-wide text-muted-foreground/60">{item.hint}</p>
+            </div>
             <button
               type="button"
               onClick={() => state.setPanel(null)}
@@ -672,7 +755,7 @@ export function ContextPanel({ state }: { state: OloLinkState }) {
               <X className="h-3.5 w-3.5" />
             </button>
           </header>
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex-1 overflow-y-auto px-5 py-5">
             <Body state={state} />
           </div>
         </motion.aside>
