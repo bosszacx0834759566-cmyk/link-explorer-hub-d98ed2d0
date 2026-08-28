@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ASSET_BY_ID, KIND_META, TECH_META, type LinkState, type Segment } from '@/lib/ololink';
 import type { OloLinkState } from '@/hooks/use-ololink';
 
-function Line({ label, value, tone }: { label: string; value: string; tone?: string }) {
+function Line({ label, value, tone }: { label: string; value: string; tone?: string | undefined }) {
   return (
     <div className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-0">
       <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70">{label}</span>

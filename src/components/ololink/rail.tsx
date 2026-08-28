@@ -32,7 +32,7 @@ function RailButton({
   item: (typeof RAIL_ITEMS)[number];
   isActive: boolean;
   onToggle: () => void;
-  badge?: number;
+  badge?: number | undefined;
 }) {
   const Icon = item.icon;
   return (

@@ -37,7 +37,7 @@ function Row({
 }: {
   label: string;
   value: string;
-  tone?: string;
+  tone?: string | undefined;
 }) {
   return (
     <div className="flex items-baseline justify-between border-b border-white/[0.04] py-1.5 last:border-0">
@@ -55,9 +55,9 @@ function ListButton({
   onClick,
 }: {
   label: string;
-  meta?: string;
-  active?: boolean;
-  dot?: string;
+  meta?: string | undefined;
+  active?: boolean | undefined;
+  dot?: string | undefined;
   onClick: () => void;
 }) {
   return (
